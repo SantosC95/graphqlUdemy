@@ -1,0 +1,28 @@
+{
+  "name": "graph-ql-udemy",
+  "version": "1.0.0",
+  "description": "Udemy Course of GrapgQL + Prisma",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SantosC95/graphqlUdemy.git"
+  },
+  "keywords": [
+    "graphql",
+    "prisma"
+  ],
+  "author": "Cristian Santos",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SantosC95/graphqlUdemy/issues"
+  },
+  "homepage": "https://github.com/SantosC95/graphqlUdemy#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.4",
+    "@babel/preset-env": "^7.4.4"
+  }
+}
