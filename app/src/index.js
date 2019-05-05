@@ -6,13 +6,53 @@ import { GraphQLServer } from "graphql-yoga"
  * Non-Scalar => Objects and Arrays
  */
 
+// Demo users data
+const users = [
+    {
+        id: "1",
+        name: "Cristian",
+        email: "cysantos21@gmail.com",
+        age: 24
+    }, 
+    {
+        id: "2",
+        name: "Laura",
+        email: "lauramojicamartinez1@gmail.com"
+    },
+    {
+        id: "3",
+        name: "Maya",
+        email: "maya@example.com"
+    }
+]
+
+const posts = [
+    {
+        id: "1",
+        title: "First post",
+        body: "This is the content of the first post ...",
+        published: true
+    }, 
+    {
+        id: "2",
+        title: "Second post",
+        body: "This is the body of the second post ...",
+        published: false
+    },
+    {
+        id: "3",
+        title: "Third post",
+        body: "This is the content of the third post ...",
+        published: true
+    }
+]
+
 const typeDefs = `
     type Query {      
         me: User!
         post: Post!
-        greeting (name: String!, lastname: String!): String!
-        add (numbers: [Float!]!): Float!
-        grades: [Int!]!
+        users (query: String): [User!]!
+        posts (query: String): [Post!]!
     }
 
     type User {
@@ -50,15 +90,18 @@ const resolvers = {
                 published: true
             }
         },
-        greeting(parent, args, ctx, info) {
-            return `Hello ${args.name || 'N/A'} ${args.lastname || 'N/A'}`
+        users (parents, { query }, ctx, info) {
+            if (!query) return users
+            return users.filter(u => u.name.toLowerCase().includes(query.toLowerCase()))
         },
-        add (_, { numbers }) {
-            if (numbers.length == 0) return 0
-            return numbers.reduce(( sum, num ) => sum + num)
-        },
-        grades(parent, args) {
-            return [ 99, 88, 93 ]
+        posts (parents, { query }, ctx, info) {
+            if (!query) return posts
+            return posts.filter(p => {
+                return (
+                    p.title.toLowerCase().includes(query.toLowerCase()) ||
+                    p.body.toLowerCase().includes(query.toLowerCase())
+                )
+            })
         }
     }
 }
