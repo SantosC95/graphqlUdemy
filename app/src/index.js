@@ -11,7 +11,8 @@ const typeDefs = `
         me: User!
         post: Post!
         greeting (name: String!, lastname: String!): String!
-        add (a: Float!, b: Float!): Float!
+        add (numbers: [Float!]!): Float!
+        grades: [Int!]!
     }
 
     type User {
@@ -52,8 +53,12 @@ const resolvers = {
         greeting(parent, args, ctx, info) {
             return `Hello ${args.name || 'N/A'} ${args.lastname || 'N/A'}`
         },
-        add (_, { a, b }) {
-            return a + b
+        add (_, { numbers }) {
+            if (numbers.length == 0) return 0
+            return numbers.reduce(( sum, num ) => sum + num)
+        },
+        grades(parent, args) {
+            return [ 99, 88, 93 ]
         }
     }
 }
