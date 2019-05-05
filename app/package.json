@@ -4,7 +4,9 @@
   "description": "Udemy Course of GrapgQL + Prisma",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "babel-node src/index.js",
+    "nodemon": "nodemon --exec babel-node src/index.js"
   },
   "repository": {
     "type": "git",
@@ -23,6 +25,8 @@
   "devDependencies": {
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.4",
-    "@babel/preset-env": "^7.4.4"
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.4.4",
+    "nodemon": "^1.19.0"
   }
 }
