@@ -31,19 +31,22 @@ const posts = [
         id: "1",
         title: "First post",
         body: "This is the content of the first post ...",
-        published: true
+        published: true,
+        author: "1"
     }, 
     {
         id: "2",
         title: "Second post",
         body: "This is the body of the second post ...",
-        published: false
+        published: false,
+        author: "1"
     },
     {
         id: "3",
         title: "Third post",
         body: "This is the content of the third post ...",
-        published: true
+        published: true,
+        author: "2"
     }
 ]
 
@@ -60,6 +63,7 @@ const typeDefs = `
         name: String!
         email: String!
         age: Int
+        posts: [Post!]!
     }
 
     type Post {
@@ -67,6 +71,7 @@ const typeDefs = `
         title: String!
         body: String!
         published: Boolean!
+        author: User!
     }
 `
 /** 
@@ -102,6 +107,16 @@ const resolvers = {
                     p.body.toLowerCase().includes(query.toLowerCase())
                 )
             })
+        }
+    },
+    Post: {
+        author(parent) {
+            return users.find(user => user.id === parent.author)
+        }
+    },
+    User: {
+        posts (parent) {
+            return posts.filter(p => p.author === parent.id)
         }
     }
 }
