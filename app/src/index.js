@@ -7,7 +7,7 @@ import uuid from 'uuid/v4'
  */
 
 // Demo users data
-const users = [
+let users = [
     {
         id: "1",
         name: "Cristian",
@@ -26,7 +26,7 @@ const users = [
     }
 ]
 
-const posts = [
+let posts = [
     {
         id: "1",
         title: "First post",
@@ -51,7 +51,7 @@ const posts = [
 ]
 
 
-const comments = [
+let comments = [
     {
         id: "100",
         text: "Primer comentario",
@@ -88,9 +88,31 @@ const typeDefs = `
     }
 
     type Mutation {
-        createUser(name: String!, email: String!, age: Int): User!
-        createPost(title: String!, body: String!, published: Boolean!, author: ID!): Post!
-        createComment(text: String!, author: ID!, post: ID!): Comment!
+        createUser(data: CreateUserInput): User!
+        deleteUser(id: ID!): User!
+        createPost(data: CreatePostInput): Post!
+        deletePost(id: ID!): Post!
+        createComment(data: CreateCommentInput): Comment!
+        deleteComment(id: ID!): Comment!
+    }
+
+    input CreateUserInput {
+        name: String!
+        email: String!
+        age: Int
+    }
+
+    input CreatePostInput {
+        title: String!
+        author: ID!
+        published: Boolean!
+        body: String!
+    }
+
+    input CreateCommentInput {
+        text: String!
+        author: ID!
+        post: ID!
     }
 
     type User {
@@ -158,42 +180,71 @@ const resolvers = {
     },
     Mutation: {
         createUser (parent, args, ctx, info) {
+            const data = args.data
             const emailTaken = users.some(user => user.email === args.email)
             if (emailTaken) {
                 throw new Error('Email taken')
             }
-            const user = {
-                id: uuid(),
-                name: args.name,
-                email: args.email,
-                age: args.age
-            }
+            const user = {...{ id: uuid() }, ...data }
             users.push(user)
             return user
         },
+        deleteUser (parent, args) {
+            const index = users.findIndex(user => user.id === args.id)
+            if (index < 0) {
+                throw new Error('User not found')
+            }
+    
+            const deleted = users.splice(index, 1)
+            posts = posts.filter(post => {
+                const shouldDelete = post.author !== deleted[0].id
+                if (shouldDelete) comments = comments.filter(comment => comment.post === post.id)
+                return shouldDelete
+            })
+            comments = comments.filter(comment => comment.author !== deleted[0].id)
+            return deleted[0]
+        },
         createPost (parent, args, ctx, info) {
-            const userExist = users.some(user => user.id === args.author)
+            const data = {...args.data}
+            const userExist = users.some(user => user.id === data.author)
             if (!userExist) {
                 throw new Error('User not found')
             }
-            const post = { ...args, ...{ id: uuid() }}
+            const post = { ...data, ...{ id: uuid() }}
             posts.push(post)
             return post
         },
+        deletePost (parent, args) {
+            const index = posts.findIndex(post => post.id === args.id)
+            if (index<0) throw new Error('Post not found')
+
+            comments = comments.filter(comm => comm.post !== args.id)
+            const deleted = posts.splice(index, 1)[0]
+            return deleted
+        },
         createComment (parent, args) {
-            const userExists = users.some(user => user.id === args.author)
+            const data = {...args.data}
+            const userExists = users.some(user => user.id === data.author)
             if (!userExists) {
                 throw new Error('User not found')
             }
 
-            const postExists = posts.some(post => post.id === args.post && post.published)
+            const postExists = posts.some(post => post.id === data.post && post.published)
             if (!postExists) {
                 throw new Error('Post not found')
             }
 
-            const comment = {...{ id: uuid() }, ...args }
+            const comment = {...{ id: uuid() }, ...data }
             comments.push(comment)
             return comment
+        },
+        deleteComment(parent, args) {
+            const index = comments.findIndex(comment => comment.id === args.id)
+            if (index < 0) {
+                throw new Error('Comment not found')
+            }
+
+            return comments.splice(index, 1)[0]
         }
     },
     Post: {
