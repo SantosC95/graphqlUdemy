@@ -1,5 +1,5 @@
 import { GraphQLServer } from "graphql-yoga"
-
+import uuid from 'uuid/v4'
 /** 
  * Type definitions (Type Schema) 
  * Scalar Types (Single value) => String, Boolean, Int, Float, ID 
@@ -87,6 +87,12 @@ const typeDefs = `
         comments: [Comment!]!
     }
 
+    type Mutation {
+        createUser(name: String!, email: String!, age: Int): User!
+        createPost(title: String!, body: String!, published: Boolean!, author: ID!): Post!
+        createComment(text: String!, author: ID!, post: ID!): Comment!
+    }
+
     type User {
         id: ID!
         name: String!
@@ -148,6 +154,46 @@ const resolvers = {
         },
         comments (parent, args) {
             return comments
+        }
+    },
+    Mutation: {
+        createUser (parent, args, ctx, info) {
+            const emailTaken = users.some(user => user.email === args.email)
+            if (emailTaken) {
+                throw new Error('Email taken')
+            }
+            const user = {
+                id: uuid(),
+                name: args.name,
+                email: args.email,
+                age: args.age
+            }
+            users.push(user)
+            return user
+        },
+        createPost (parent, args, ctx, info) {
+            const userExist = users.some(user => user.id === args.author)
+            if (!userExist) {
+                throw new Error('User not found')
+            }
+            const post = { ...args, ...{ id: uuid() }}
+            posts.push(post)
+            return post
+        },
+        createComment (parent, args) {
+            const userExists = users.some(user => user.id === args.author)
+            if (!userExists) {
+                throw new Error('User not found')
+            }
+
+            const postExists = posts.some(post => post.id === args.post && post.published)
+            if (!postExists) {
+                throw new Error('Post not found')
+            }
+
+            const comment = {...{ id: uuid() }, ...args }
+            comments.push(comment)
+            return comment
         }
     },
     Post: {
