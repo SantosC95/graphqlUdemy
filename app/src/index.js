@@ -1,4 +1,4 @@
-import { GraphQLServer } from "graphql-yoga"
+import { GraphQLServer, PubSub } from "graphql-yoga"
 import db from './db'
 
 /** Resolvers */
@@ -7,6 +7,9 @@ import Mutation from './resolvers/Mutation'
 import Post from './resolvers/Post'
 import User from './resolvers/User'
 import Comment from './resolvers/Comment'
+import Subscription from './resolvers/Subscription'
+
+const pubsub = new PubSub()
 
 /** 
  * Type definitions (Type Schema) 
@@ -21,8 +24,10 @@ const server = new GraphQLServer({
         Mutation,
         Post,
         User,
-        Comment
+        Comment,
+        Subscription
     },
-    context: { db }
+    context: { db, pubsub }
 })
+
 server.start({ port: 3000 }, () => console.log('Server is up!'))

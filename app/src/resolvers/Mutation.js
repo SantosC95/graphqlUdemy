@@ -1,6 +1,6 @@
 import uuid from 'uuid/v4'
 
-export default {
+const module = {
     createUser (parent, args, { db }, info) {
         const data = args.data
         const emailTaken = db.users.some(user => user.email === args.email)
@@ -40,7 +40,7 @@ export default {
         db.comments = db.comments.filter(comment => comment.author !== deleted[0].id)
         return deleted[0]
     },
-    createPost (parent, args, { db }, info) {
+    createPost (parent, args, { db, pubsub }, info) {
         const data = {...args.data}
         const userExist = db.users.some(user => user.id === data.author)
         if (!userExist) {
@@ -48,6 +48,9 @@ export default {
         }
         const post = { ...data, ...{ id: uuid() }}
         db.posts.push(post)
+        if (post.published)
+            pubsub.publish('my-posts', { post })
+
         return post
     },
     updatePost: (parent, { id, data }, { db }) => {
@@ -66,7 +69,7 @@ export default {
         db.comments = db.comments.filter(comm => comm.post !== args.id)
         return db.posts.splice(index, 1)[0]
     },
-    createComment (parent, args, { db }) {
+    createComment (parent, args, { db, pubsub }) {
         const data = {...args.data}
         const userExists = db.users.some(user => user.id === data.author)
         if (!userExists) {
@@ -80,6 +83,7 @@ export default {
 
         const comment = {...{ id: uuid() }, ...data }
         db.comments.push(comment)
+        pubsub.publish(`COMMENT:${data.post}`, { comment })
         return comment
     },
     updateComment: (parent, { id, data }, ctx) => {
@@ -97,3 +101,5 @@ export default {
         return db.comments.splice(index, 1)[0]
     }
 }
+
+export default module
