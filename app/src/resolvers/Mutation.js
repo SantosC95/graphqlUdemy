@@ -49,25 +49,60 @@ const module = {
         const post = { ...data, ...{ id: uuid() }}
         db.posts.push(post)
         if (post.published)
-            pubsub.publish('my-posts', { post })
+            pubsub.publish('my-posts', {
+                post: {
+                    mutation: "CREATED",
+                    data: post
+                }
+            })
 
         return post
     },
-    updatePost: (parent, { id, data }, { db }) => {
-        console.log(db.posts)
+    updatePost: (parent, { id, data }, { db, pubsub }) => {
         const post = db.posts.find(post => post.id === id)
         if (!post) throw new Error('Post not found')
+
+        /** Determine whether a post was created, deleted or updated */
+        let event = null
         post.title = data.title || post.title
         post.body = data.body || post.body
-        post.published = data.published || post.published
+        
+        if (typeof data.published === 'boolean') {
+            if (!post.published && data.published) event = "CREATED"
+            if (post.published && !data.published) event = "DELETED"
+            if (post.published && data.published) event = "UPDATED"
+            post.published = data.published
+        } else {
+            if (post.published) 
+                event = "UPDATED"
+        }
+
+        if (event) {
+            pubsub.publish('my-posts', {
+                post: {
+                    mutation: event,
+                    data: post
+                }
+            })
+        }
         return post        
     },
-    deletePost (parent, args, { db }) {
+    deletePost (parent, args, { db, pubsub }) {
         const index = db.posts.findIndex(post => post.id === args.id)
         if (index<0) throw new Error('Post not found')
 
         db.comments = db.comments.filter(comm => comm.post !== args.id)
-        return db.posts.splice(index, 1)[0]
+
+        const [deleted] = db.posts.splice(index, 1)
+        if (deleted.published) {
+            pubsub.publish('my-posts', {
+                post: {
+                    mutation: "DELETED",
+                    data: deleted
+                }
+            })
+        }
+        return deleted
     },
     createComment (parent, args, { db, pubsub }) {
         const data = {...args.data}
