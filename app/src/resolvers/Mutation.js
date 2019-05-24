@@ -118,22 +118,41 @@ const module = {
 
         const comment = {...{ id: uuid() }, ...data }
         db.comments.push(comment)
-        pubsub.publish(`COMMENT:${data.post}`, { comment })
+        pubsub.publish(`COMMENT:${data.post}`, { 
+            comment: {
+                mutation: "CREATED",
+                data: comment
+            } 
+        })
         return comment
     },
     updateComment: (parent, { id, data }, ctx) => {
-        const { db } = ctx
+        const { db, pubsub } = ctx
         const comment = db.comments.find(comment => comment.id === id)
         if (!comment) throw new Error('Comment not found')
         comment.text = data.text || comment.text
+        pubsub.publish(`COMMENT:${comment.post}`, {
+            comment: {
+                mutation: "UPDATED",
+                data: comment
+            }
+        })
         return comment
     },
-    deleteComment(parent, args) {
+    deleteComment(parent, args, { db, pubsub }) {
         const index = db.comments.findIndex(comment => comment.id === args.id)
         if (index < 0) {
             throw new Error('Comment not found')
         }
-        return db.comments.splice(index, 1)[0]
+
+        const [ comment ] = db.comments.splice(index, 1) 
+        pubsub.publish(`COMMENT:${comment.post}`, {
+            comment: {
+                mutation: "DELETED",
+                data: comment
+            }
+        })
+        return comment
     }
 }
 
