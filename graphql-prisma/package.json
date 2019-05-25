@@ -1,0 +1,39 @@
+{
+  "name": "graph-ql-udemy",
+  "version": "1.0.0",
+  "description": "Udemy Course of GrapgQL + Prisma",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "babel-node src/index.js",
+    "nodemon": "nodemon --exec babel-node --ext js,graphql,json src/index.js",
+    "get-schema": "graphql get-schema  -p prisma"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SantosC95/graphqlUdemy.git"
+  },
+  "keywords": [
+    "graphql",
+    "prisma"
+  ],
+  "author": "Cristian Santos",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SantosC95/graphqlUdemy/issues"
+  },
+  "homepage": "https://github.com/SantosC95/graphqlUdemy#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.4",
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.4.4",
+    "graphql-cli": "^3.0.11",
+    "nodemon": "^1.19.0"
+  },
+  "dependencies": {
+    "graphql-yoga": "^1.17.4",
+    "prisma-binding": "^2.3.11",
+    "uuid": "^3.3.2"
+  }
+}
