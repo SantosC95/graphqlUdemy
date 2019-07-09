@@ -1,18 +1,25 @@
-import uuid from 'uuid/v4'
-
-const module = {
-    createUser (parent, args, { db }, info) {
+const myModule = {
+    async createUser (parent, args, { prisma }, info) {
         const data = args.data
-        const emailTaken = db.users.some(user => user.email === args.email)
+        const emailTaken = await prisma.exists.User({ email: data.email })
         if (emailTaken) {
             throw new Error('Email taken')
         }
-        const user = {...{ id: uuid() }, ...data }
+        return prisma.mutation.createUser(data, info)
+
+        /*const emailTaken = db.users.some(user => user.email === args.email)
+        if (emailTaken) {
+            throw new Error('Email taken')
+        }
+        const user = { id: uuid(), ...data }
         db.users.push(user)
-        return user
+        return user*/
     },
-    updateUser (parent, args, { db }) {
-        const user = db.users.find(user => user.id === args.id)
+    updateUser (parent, args, { prisma }, info) {
+        const { id, data } = args
+        return prisma.mutation.updateUser({ where: { id }, data }, info)
+
+        /*const user = db.users.find(user => user.id === args.id)
         if(!user) throw new Error('User not found')
         if (args.data.email) {
             const emailTaken = db.users.some(user => user.email === args.data.email)
@@ -23,10 +30,17 @@ const module = {
         if (typeof args.data !== 'undefined') {
             user.age = args.data.age
         }
-        return user
+        return user*/
     },
-    deleteUser (parent, args, { db }) {
-        const index = db.users.findIndex(user => user.id === args.id)
+    async deleteUser (parent, args, { prisma }) {
+        const { id } = args
+        const userExist = await prisma.exists.User({ id })
+        if (!userExist) {
+            throw new Error('User not found')
+        }
+
+        return prisma.mutation.deleteUser({ where: { id } })
+        /*const index = db.users.findIndex(user => user.id === args.id)
         if (index < 0) {
             throw new Error('User not found')
         }
@@ -38,11 +52,25 @@ const module = {
             return shouldDelete
         })
         db.comments = db.comments.filter(comment => comment.author !== deleted[0].id)
-        return deleted[0]
+        return deleted[0]*/
     },
-    createPost (parent, args, { db, pubsub }, info) {
-        const data = {...args.data}
-        const userExist = db.users.some(user => user.id === data.author)
+    async createPost (parent, args, { pubsub, prisma }, info) {
+        const data = { ...args.data }
+        const userExist = await prisma.exists.User({ id: data.author })
+        if (!userExist) {
+            throw new Error('User not found')
+        }
+
+        let post = { ...data }
+        delete post.author
+        post.author = {
+            connect: {
+                id: data.author
+            }
+        }
+
+        return prisma.mutation.createPost({ data: post }, info)
+        /*const userExist = db.users.some(user => user.id === data.author)
         if (!userExist) {
             throw new Error('User not found')
         }
@@ -56,13 +84,20 @@ const module = {
                 }
             })
 
-        return post
+        return post*/
     },
-    updatePost: (parent, { id, data }, { db, pubsub }) => {
-        const post = db.posts.find(post => post.id === id)
+    updatePost: async (parent, { id, data }, { pubsub, prisma }, info) => {
+        const postExists = await prisma.exists.Post({ id })
+        if (!postExists) {
+            throw new Error('Post not found')
+        }
+
+        return prisma.mutation.updatePost({ where: { id }, data }, info)
+
+        /*const post = db.posts.find(post => post.id === id)
         if (!post) throw new Error('Post not found')
 
-        /** Determine whether a post was created, deleted or updated */
+        // Determine whether a post was created, deleted or updated
         let event = null
         post.title = data.title || post.title
         post.body = data.body || post.body
@@ -85,10 +120,17 @@ const module = {
                 }
             })
         }
-        return post        
+        return post*/        
     },
-    deletePost (parent, args, { db, pubsub }) {
-        const index = db.posts.findIndex(post => post.id === args.id)
+    async deletePost (parent, args, { pubsub, prisma }, info) {
+        const { id } = args
+        const postExists = await prisma.exists.Post({ id })
+        if (!postExists) {
+            throw new Error('Post not found')
+        }
+        return prisma.mutation.deletePost({ where: { id }}, info) 
+
+        /*const index = db.posts.findIndex(post => post.id === args.id)
         if (index<0) throw new Error('Post not found')
 
         db.comments = db.comments.filter(comm => comm.post !== args.id)
@@ -102,11 +144,39 @@ const module = {
                 }
             })
         }
-        return deleted
+        return deleted*/
     },
-    createComment (parent, args, { db, pubsub }) {
+    async createComment (parent, args, { pubsub, prisma }, info) {
         const data = {...args.data}
-        const userExists = db.users.some(user => user.id === data.author)
+        const userExists = await prisma.exists.User({ id: data.author })
+        if (!userExists) {
+            throw new Error('User not found')
+        }
+
+        const postExists = await prisma.exists.Post({ id: data.post, published: true })
+        if (!postExists) {
+            throw new Error('Post not found')
+        }
+
+        let comment = {...data}
+        delete comment.author
+        delete comment.post
+        comment = { 
+            ...comment, 
+            author: {
+                connect: {
+                    id: data.author
+                }
+            },
+            post: {
+                connect: {
+                    id: data.post
+                }
+            }
+        }
+
+        return prisma.mutation.createComment({ data: comment }, info)
+        /*const userExists = db.users.some(user => user.id === data.author)
         if (!userExists) {
             throw new Error('User not found')
         }
@@ -124,11 +194,25 @@ const module = {
                 data: comment
             } 
         })
-        return comment
+        return comment*/
     },
-    updateComment: (parent, { id, data }, ctx) => {
-        const { db, pubsub } = ctx
-        const comment = db.comments.find(comment => comment.id === id)
+    updateComment: async (parent, { id, data }, ctx, info) => {
+        const { prisma } = ctx
+        if (!(await prisma.exists.Comment({ id }))) {
+            throw new Error('Comment not found')
+        }
+
+        return prisma
+            .mutation
+            .updateComment(
+                {
+                    where: { id },
+                    data
+                },
+                info
+            )
+
+        /*const comment = db.comments.find(comment => comment.id === id)
         if (!comment) throw new Error('Comment not found')
         comment.text = data.text || comment.text
         pubsub.publish(`COMMENT:${comment.post}`, {
@@ -137,10 +221,15 @@ const module = {
                 data: comment
             }
         })
-        return comment
+        return comment*/
     },
-    deleteComment(parent, args, { db, pubsub }) {
-        const index = db.comments.findIndex(comment => comment.id === args.id)
+    async deleteComment(parent, { id }, { pubsub, prisma }, info) {
+        const thereIsComment = await prisma.exists.Comment({ id }) 
+        if (!thereIsComment) {
+            throw new Error('Comment not found')
+        }
+        return prisma.mutation.deleteComment({ where: { id }}, info)
+        /*const index = db.comments.findIndex(comment => comment.id === args.id)
         if (index < 0) {
             throw new Error('Comment not found')
         }
@@ -152,8 +241,8 @@ const module = {
                 data: comment
             }
         })
-        return comment
+        return comment*/
     }
 }
 
-export default module
+export default myModule

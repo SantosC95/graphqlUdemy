@@ -39,6 +39,10 @@ export default {
             .posts(prismaQ, info)
     },
     comments (parent, args, { prisma }, info) {
+        /**
+        if (!query) return db.comments
+        return db.comments.filter(comment => comment.text.toLowerCase().includes(query.toLowerCase()))
+         */
         const { query } = args
         const prismaQ = {}
         if (query) {
