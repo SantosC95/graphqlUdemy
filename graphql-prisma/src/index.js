@@ -5,6 +5,7 @@ import db from './db'
 import Query from './resolvers/Query'
 import Mutation from './resolvers/Mutation'
 import Subscription from './resolvers/Subscription'
+import User from './resolvers/User'
 import prisma from './prisma'
 
 const pubsub = new PubSub()
@@ -20,9 +21,17 @@ const server = new GraphQLServer({
     resolvers: {
         Query,
         Mutation,
-        Subscription
+        Subscription,
+        User
     },
-    context: { db, pubsub, prisma }
+    context (request) {
+        return {
+            db,
+            pubsub,
+            prisma,
+            request
+        }
+    }
 })
 
 server.start({ port: 3000 }, () => console.log('Server is up!'))

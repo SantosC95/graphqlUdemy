@@ -1,8 +1,13 @@
+import { getUserId } from "../utils/utils"
+
 export default {
-    posts (parent) {
-        return db.posts.filter(p => p.author === parent.id)
-    },
-    comments (parent) {
-        return db.comments.filter(c => c.author === parent.id)
+    email (parent, args, { request }, info) {
+        const userId = getUserId(request, false)
+
+        if (userId && userId === parent.id) {
+            return parent.email
+        }
+
+        return null
     }
 }

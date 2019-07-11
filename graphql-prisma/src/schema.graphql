@@ -1,15 +1,16 @@
 type Query {     
     me: User!
-    post: Post!
     users (query: String): [User!]!
     posts (query: String): [Post!]!
+    myPosts (query: String): [Post!]!
     comments (query: String): [Comment!]!
+    post(id: ID!): Post!
 }
 
 type Mutation {
     createUser(data: CreateUserInput): AuthResponse!
-    deleteUser(id: ID!): User!
-    updateUser(id: ID!, data: UpdateUserInput!): User!
+    deleteUser: User!
+    updateUser(data: UpdateUserInput!): User!
     createPost(data: CreatePostInput): Post!
     updatePost(id: ID!, data: UpdatePostInput!): Post!
     deletePost(id: ID!): Post!
@@ -48,7 +49,6 @@ input UpdateUserInput{
 
 input CreatePostInput {
     title: String!
-    author: ID!
     published: Boolean!
     body: String!
 }
@@ -61,7 +61,6 @@ input UpdatePostInput {
 
 input CreateCommentInput {
     text: String!
-    author: ID!
     post: ID!
 }
 
@@ -72,8 +71,7 @@ input UpdateCommentInput {
 type User {
     id: ID!
     name: String!
-    email: String!
-    password: String!
+    email: String
     posts: [Post!]!
     comments: [Comment!]!
 }
