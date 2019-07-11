@@ -1,11 +1,25 @@
+import { hash, compare } from "bcryptjs"
+import jwt from "jsonwebtoken"
+
 const myModule = {
-    async createUser (parent, args, { prisma }, info) {
+    async createUser (parent, args, { prisma }) {
         const data = args.data
         const emailTaken = await prisma.exists.User({ email: data.email })
         if (emailTaken) {
             throw new Error('Email taken')
         }
-        return prisma.mutation.createUser(data, info)
+
+        if (data.password.length < 8) {
+            throw new Error('Password must be 8 characters or longer')
+        }
+
+        const password = await hash(data.password, 10)
+        const user = await prisma.mutation.createUser({ data: { ...data, password }})
+
+        return {
+            user,
+            token: jwt.sign({ userId: user.id }, "PrismaTutorialSecret2019")
+        }
 
         /*const emailTaken = db.users.some(user => user.email === args.email)
         if (emailTaken) {
@@ -242,6 +256,24 @@ const myModule = {
             }
         })
         return comment*/
+    },
+    async login(parent, { data }, { prisma }, info) {
+        const { email, password } = data
+        const thereIsEmail = await prisma.exists.User({ email })
+        if (!thereIsEmail) {
+            throw new Error('Wrong Credentials')
+        }
+
+        const user = await prisma.query.user({ where: { email }})
+        const isValidPassword = await compare(password, user.password)
+        if (!isValidPassword) {
+            throw new Error('Wrong Credentials')
+        }
+
+        return {
+            user,
+            token: jwt.sign({ userId: user.id }, "PrismaTutorialSecret2019")
+        }
     }
 }
 

@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "babel-node src/index.js",
     "nodemon": "nodemon --exec babel-node --ext js,graphql,json src/index.js",
-    "get-schema": "graphql get-schema  -p prisma"
+    "get-schema": "graphql get-schema -p prisma"
   },
   "repository": {
     "type": "git",
@@ -32,8 +32,9 @@
     "nodemon": "^1.19.0"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "graphql-yoga": "^1.17.4",
-    "prisma-binding": "^2.3.11",
-    "uuid": "^3.3.2"
+    "jsonwebtoken": "^8.5.1",
+    "prisma-binding": "^2.3.11"
   }
 }
