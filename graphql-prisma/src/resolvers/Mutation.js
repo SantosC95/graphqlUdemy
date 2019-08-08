@@ -106,6 +106,21 @@ const myModule = {
             throw new Error('Unable to update post')
         }
 
+        const isPublished = await prisma.exists.Post({
+            id, 
+            published: true
+        })
+
+        if (isPublished && !data.published) {
+            await prisma.mutation.deleteManyComments({
+                where: {
+                    post: {
+                        id
+                    }
+                }
+            })
+        }
+
         return prisma.mutation.updatePost({ where: { id }, data }, info)
 
         /*const post = db.posts.find(post => post.id === id)
