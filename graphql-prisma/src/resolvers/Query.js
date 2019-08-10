@@ -1,11 +1,11 @@
 import { getUserId } from "../utils/utils"
 
 export default {
-    users (parent, { query }, { prisma }, info) {
+    users (parent, { query, first, skip, after }, { prisma }, info) {
         /*if (!query) return db.users
         return db.users.filter(u => u.name.toLowerCase().includes(query.toLowerCase()))*/
 
-        const prismaQ = {}
+        const prismaQ = { first, skip, after }
         if (query) {
             prismaQ.where = {
                 OR: [
@@ -17,7 +17,7 @@ export default {
             .query
             .users(prismaQ, info)
     },
-    posts (parent, { query }, { prisma, request }, info) {
+    posts (parent, { query, first, skip, after }, { prisma, request }, info) {
         /*if (!query) return db.posts
         return db.posts.filter(p => {
             return (
@@ -28,7 +28,7 @@ export default {
 
         const userId = getUserId(request, false)
         
-        const prismaQ = {}
+        const prismaQ = { first, skip, after }
         if (query) {
             prismaQ.where = {
                 AND: [
@@ -72,8 +72,8 @@ export default {
         if (!query) return db.comments
         return db.comments.filter(comment => comment.text.toLowerCase().includes(query.toLowerCase()))
          */
-        const { query } = args
-        const prismaQ = {}
+        const { query, first, skip, after } = args
+        const prismaQ = { first, skip, after }
         if (query) {
             prismaQ.where = {
                 text_contains: query
@@ -113,7 +113,7 @@ export default {
         const id = getUserId(request)
         return prisma.query.user({ where: { id }}, info)
     },
-    myPosts(parent, { query }, { prisma, request }, info) {
+    myPosts(parent, { query, skip, first, after }, { prisma, request }, info) {
         const userId = getUserId(request)
         const myQuery = {
             where: {
@@ -124,7 +124,10 @@ export default {
                         }
                     }
                 ]
-            }
+            },
+            first, 
+            skip,
+            after
         }
 
         if (query) {
