@@ -1,10 +1,16 @@
 import jwt from "jsonwebtoken"
+import { hash } from "bcryptjs"
+
+const secret =  "PrismaTutorialSecret2019"
 
 const getUserId = ( request, requireAuth = true ) => {
-    const { headers } = request.request
-    if (headers.authorization) {
-        const token = headers.authorization.split(" ")[1]
-        const decoded = jwt.verify(token, "PrismaTutorialSecret2019")
+    const authorization = request.request ? 
+        request.request.headers.authorization :
+        request.connection.context.Authorization
+
+    if (authorization) {
+        const token = authorization.split(" ")[1]
+        const decoded = jwt.verify(token, secret)
         return decoded.userId
     }
 
@@ -15,4 +21,20 @@ const getUserId = ( request, requireAuth = true ) => {
     return null
 }
 
-export { getUserId }
+const generateToken = ( userId ) => {
+    return jwt.sign(
+        { userId }, 
+        secret, 
+        { expiresIn: '7 days' }
+    )
+}
+
+const hashPassword = ( password ) => {
+    if (password.length < 8) {
+        throw new Error('Password must be 8 characters or longer')
+    }
+
+    return hash(password, 10)
+}
+
+export { getUserId, generateToken, hashPassword }

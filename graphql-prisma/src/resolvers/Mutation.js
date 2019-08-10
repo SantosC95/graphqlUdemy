@@ -1,6 +1,5 @@
-import { hash, compare } from "bcryptjs"
-import jwt from "jsonwebtoken"
-import { getUserId } from "../utils/utils"
+import { getUserId, generateToken, hashPassword } from "../utils/utils"
+import { compare } from "bcryptjs"
 
 const myModule = {
     async createUser (parent, args, { prisma }) {
@@ -10,16 +9,18 @@ const myModule = {
             throw new Error('Email taken')
         }
 
-        if (data.password.length < 8) {
-            throw new Error('Password must be 8 characters or longer')
-        }
-
-        const password = await hash(data.password, 10)
-        const user = await prisma.mutation.createUser({ data: { ...data, password }})
+        const user = await prisma
+            .mutation
+            .createUser({ 
+                data: { 
+                    ...data, 
+                    password: await hashPassword(data.password)
+                }
+            })
 
         return {
             user,
-            token: jwt.sign({ userId: user.id }, "PrismaTutorialSecret2019")
+            token: generateToken(user.id)
         }
 
         /*const emailTaken = db.users.some(user => user.email === args.email)
@@ -30,9 +31,14 @@ const myModule = {
         db.users.push(user)
         return user*/
     },
-    updateUser (parent, args, { prisma, request }, info) {
+    async updateUser (parent, args, { prisma, request }, info) {
         const { data } = args
         const id = getUserId(request)
+
+        if (typeof data.password === "string") {
+            data.password = await hashPassword(data.password)
+        }
+
         return prisma.mutation.updateUser({ where: { id }, data }, info)
 
         /*const user = db.users.find(user => user.id === args.id)
@@ -285,7 +291,7 @@ const myModule = {
 
         return {
             user,
-            token: jwt.sign({ userId: user.id }, "PrismaTutorialSecret2019")
+            token: generateToken(user.id)
         }
     }
 }

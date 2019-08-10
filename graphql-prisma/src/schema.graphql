@@ -24,6 +24,7 @@ type Subscription {
     count: Int!
     comment(postId: ID!): CommentSubscriptionPayload!
     post: PostSubscriptionPayload!
+    myPost: PostSubscriptionPayload!
 }
 
 type AuthResponse {
@@ -42,9 +43,10 @@ input CreateUserInput {
     password: String!
 }
 
-input UpdateUserInput{
+input UpdateUserInput {
     name: String
     email: String
+    password: String
 }
 
 input CreatePostInput {
