@@ -1,11 +1,11 @@
 import { getUserId } from "../utils/utils"
 
 export default {
-    users (parent, { query, first, skip, after }, { prisma }, info) {
+    users (parent, { query, first, skip, after, orderBy }, { prisma }, info) {
         /*if (!query) return db.users
         return db.users.filter(u => u.name.toLowerCase().includes(query.toLowerCase()))*/
 
-        const prismaQ = { first, skip, after }
+        const prismaQ = { first, skip, after, orderBy }
         if (query) {
             prismaQ.where = {
                 OR: [
