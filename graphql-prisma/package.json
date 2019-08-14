@@ -8,6 +8,7 @@
     "start": "node dist/index.js",
     "heroku-postbuild": "babel src --out-dir dist --copy-files",
     "nodemon": "env-cmd -f ./config/dev.env nodemon --exec babel-node --ext js,graphql,json src/index.js",
+    "nodemon-prod": "env-cmd -f ./config/prod.env nodemon --exec babel-node --ext js,graphql,json src/index.js",
     "get-schema": "graphql get-schema -p prisma"
   },
   "repository": {
