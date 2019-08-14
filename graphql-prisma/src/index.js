@@ -1,6 +1,6 @@
 import { GraphQLServer, PubSub } from "graphql-yoga"
 import db from './db'
-import "@babel/polyfill"
+import "@babel/polyfill/noConflict"
 
 /** Resolvers and Prisma modules */
 import { resolvers } from "./resolvers"

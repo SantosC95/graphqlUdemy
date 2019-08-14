@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken"
 import { hash } from "bcryptjs"
 
-const secret =  "PrismaTutorialSecret2019"
+const secret = process.env.PRISMA_SECRET_TOKEN;
 
 const getUserId = ( request, requireAuth = true ) => {
     const authorization = request.request ? 
