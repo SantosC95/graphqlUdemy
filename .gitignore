@@ -3,3 +3,6 @@ app/package-lock.json
 .vscode
 graphql-prisma/node_modules
 .sonarlint
+graphql-prisma/config
+graphql-prisma/dist
+graphql-prisma/package-lock.json

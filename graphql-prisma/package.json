@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "babel-node src/index.js",
-    "nodemon": "nodemon --exec babel-node --ext js,graphql,json src/index.js",
+    "start": "node dist/index.js",
+    "heroku-postbuild": "babel src --out-dir dist --copy-files",
+    "nodemon": "env-cmd -f ./config/dev.env nodemon --exec babel-node --ext js,graphql,json src/index.js",
     "get-schema": "graphql get-schema -p prisma"
   },
   "repository": {
@@ -24,17 +25,19 @@
   },
   "homepage": "https://github.com/SantosC95/graphqlUdemy#readme",
   "devDependencies": {
+    "nodemon": "^1.19.0",
+    "env-cmd": "^9.0.3"
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.4.4",
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.4",
     "@babel/node": "^7.2.2",
     "@babel/preset-env": "^7.4.4",
-    "graphql-cli": "^3.0.11",
-    "nodemon": "^1.19.0"
-  },
-  "dependencies": {
     "bcryptjs": "^2.4.3",
     "graphql-yoga": "^1.17.4",
     "jsonwebtoken": "^8.5.1",
-    "prisma-binding": "^2.3.11"
+    "prisma-binding": "^2.3.11",
+    "graphql-cli": "^3.0.11"
   }
 }
